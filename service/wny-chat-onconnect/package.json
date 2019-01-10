@@ -1,0 +1,15 @@
+{
+  "name": "wny-chat-onconnect",
+  "version": "1.0.0",
+  "description": "Handler for the initial client WebSocket connection.",
+  "main": "wny-chat-onconnect.js",
+  "scripts": {
+    "deploy": "aws lambda update-function-code --function-name wny-chat-onconnect --zip-file fileb://Lambda-Deployment.zip",
+    "predeploy": "zip -r Lambda-Deployment.zip * -x *.zip *.json *.log"
+  },
+  "author": "wholeNaNyards",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.382.0"
+  }
+}

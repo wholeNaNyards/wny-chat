@@ -1,0 +1,15 @@
+{
+  "name": "wny-chat-send-message",
+  "version": "1.0.0",
+  "description": "Handler for sending messages to Websocket Clients.",
+  "main": "wny-chat-sendMessage.js",
+  "scripts": {
+    "deploy": "aws lambda update-function-code --function-name wny-chat-sendMessage --zip-file fileb://Lambda-Deployment.zip",
+    "predeploy": "zip -r Lambda-Deployment.zip * -x *.zip *.json *.log"
+  },
+  "author": "wholeNaNyards",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.382.0"
+  }
+}
