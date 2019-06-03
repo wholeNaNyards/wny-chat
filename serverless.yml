@@ -1,0 +1,76 @@
+service: wny-chat
+
+# Use the serverless-webpack plugin to transpile ES6
+plugins:
+  - serverless-webpack
+  - serverless-offline
+
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  # Set the table name here so we can use it while testing locally
+  tableName: ${self:custom.stage}-wny-chat-connections
+  # Set our DynamoDB throughput for prod and all other non-prod stages.
+  tableThroughputs:
+    prod: 5
+    default: 1
+  tableThroughput: ${self:custom.tableThroughputs.${self:custom.stage}, self:custom.tableThroughputs.default}
+  # Load our webpack config
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+  memorySize: 128
+  timeout: 10
+  region: us-east-1
+
+  # These environment variables are made available to our functions
+  # under process.env.
+  environment:
+    tableName: ${self:custom.tableName}
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Scan
+        - dynamodb:PutItem
+        - dynamodb:DeleteItem
+      # Restrict our IAM role permissions to
+      # the specific table for the stage
+      Resource:
+        - "Fn::GetAtt": [ConnectionsTable, Arn]
+
+functions:
+  onconnect:
+    handler: onconnect.main
+    name: ${self:custom.stage}-wny-chat-onconnect
+    description: "Handler for the initial client WebSocket connection."
+    events:
+      - websocket:
+          route: $connect
+
+  ondisconnect:
+    handler: ondisconnect.main
+    name: ${self:custom.stage}-wny-chat-ondisconnect
+    description: "Handler for disconnecting the client WebSocket connection."
+    events:
+      - websocket:
+          route: $disconnect
+
+  sendMessage:
+    handler: sendMessage.main
+    name: ${self:custom.stage}-wny-chat-sendMessage
+    description: "Handler for sending messages to Websocket Clients."
+    events:
+      - websocket:
+          route: sendmessage
+
+# Create our resources with separate CloudFormation templates
+resources:
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}

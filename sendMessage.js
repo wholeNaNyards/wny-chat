@@ -1,19 +1,20 @@
-const AWS = require("aws-sdk");
+import AWS from "aws-sdk";
 
 // Add ApiGatewayManagementApi to the AWS namespace
-require("aws-sdk/clients/apigatewaymanagementapi");
+import * as ensureApiGatewayManagementApi from "aws-apigatewaymanagementapi";
+ensureApiGatewayManagementApi(AWS);
 
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
-const { TABLE_NAME } = process.env;
+const { tableName } = process.env;
 
-exports.handler = async (event, context) => {
+export async function main(event, context) {
   let connectionData;
 
   try {
     connectionData = await ddb
       .scan({
-        TableName: TABLE_NAME,
+        TableName: tableName,
         ProjectionExpression: "connectionId"
       })
       .promise();
@@ -43,7 +44,7 @@ exports.handler = async (event, context) => {
         console.log(`Found stale connection, deleting ${connectionId}`);
         await ddb
           .delete({
-            TableName: TABLE_NAME,
+            TableName: tableName,
             Key: { connectionId }
           })
           .promise();
@@ -60,4 +61,4 @@ exports.handler = async (event, context) => {
   }
 
   return { statusCode: 200, body: "Data sent." };
-};
+}

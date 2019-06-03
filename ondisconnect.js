@@ -1,10 +1,11 @@
-var AWS = require("aws-sdk");
+import AWS from "aws-sdk";
+
 AWS.config.update({ region: process.env.AWS_REGION });
 var DDB = new AWS.DynamoDB({ apiVersion: "2012-10-08" });
 
-exports.handler = function(event, context, callback) {
+export function main(event, context, callback) {
   var deleteParams = {
-    TableName: process.env.TABLE_NAME,
+    TableName: process.env.tableName,
     Key: {
       connectionId: { S: event.requestContext.connectionId }
     }
@@ -18,4 +19,4 @@ exports.handler = function(event, context, callback) {
         : "Disconnected."
     });
   });
-};
+}
